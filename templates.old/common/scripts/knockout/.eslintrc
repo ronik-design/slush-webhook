@@ -1,9 +1,0 @@
-{
-  "extends": "defaults/configurations/walmart/es6-browser",
-  "ecmaFeatures": {
-    "experimentalObjectRestSpread": true
-  },
-  "globals": {
-    "__DEV__": true
-  }
-}

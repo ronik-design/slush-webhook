@@ -1,6 +1,0 @@
-{
-  "extends": "defaults/configurations/walmart/es6-node",
-  "rules": {
-    "strict": 0
-  }
-}
