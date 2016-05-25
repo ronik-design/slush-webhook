@@ -1,0 +1,79 @@
+/* Media queries breakpoints */
+$screen-xs: 480px;
+$screen-sm: 738px;
+$screen-md: 998px;
+$screen-lg: 1294px;
+
+/* Grid system */
+$grid-gutter-width: 20px;
+
+/* Container sizes */
+$container-tablet: (720px + $grid-gutter-width);
+$container-desktop: (940px + $grid-gutter-width);
+$container-hd: (1140px + $grid-gutter-width);
+
+/* Typography */
+
+$font-family-sans-serif: Helvetica, Arial, sans-serif;
+$font-family-serif: "Times New Roman", "Times", serif;
+$font-family-monospace: Menlo, Monaco, Consolas, "Courier New", monospace;
+$font-family-base: $font-family-sans-serif;
+
+$font-size-base: 10px;
+$font-size: 1.6rem;
+$font-size-large: ceil(($font-size-base * 1.25));
+$font-size-small: ceil(($font-size-base * 0.85));
+
+$line-height-base: 1.428571429;
+$line-height-computed: floor(($font-size-base * $line-height-base));
+
+$headings-font-family: inherit !default;
+$headings-font-weight: 500 !default;
+$headings-line-height: 1.1 !default;
+$headings-color: inherit !default;
+
+$font-size-h1: 2.5rem !default;
+$font-size-h2: 2rem !default;
+$font-size-h3: 1.75rem !default;
+$font-size-h4: 1.5rem !default;
+$font-size-h5: 1.25rem !default;
+$font-size-h6: 1rem !default;
+
+/* Modals */
+
+$modal-content-bg: #fff;
+$modal-backdrop-bg: #000;
+$modal-backdrop-opacity: 0.5;
+
+$modal-lg: 900px;
+$modal-md: 600px;
+$modal-sm: 300px;
+
+$font-weights: (
+  thin: 100,
+  extra-light: 200,
+  light: 300,
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+  extra-bold: 800,
+  black: 900
+);
+
+$breakpoints: (
+  screen-xs: $screen-xs,
+  screen-sm: $screen-sm,
+  screen-md: $screen-md,
+  screen-lg: $screen-lg
+);
+
+$layers: (
+  content,
+  header,
+  dropdown,
+  overlay,
+  modal,
+  modal-background,
+  modal-content
+);

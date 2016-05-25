@@ -1,0 +1,7 @@
+.footer {
+  @extend %basic-block;
+}
+
+.footer__inner {
+  @extend .container;
+}

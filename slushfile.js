@@ -1,297 +1,377 @@
-/* eslint max-statements:0 */
-/* eslint no-console:0 */
-/* eslint global-require:0 */
+'use strict';
 
-/*
- * slush-stencil
- * https://github.com/ronik-design/slush-stencil
- *
- * Copyright (c) 2015, Michael Shick
- * Licensed under the ISC license.
- */
+const gulp = require('gulp');
+const path = require('path');
+const fs = require('fs');
+const async = require('async');
+const install = require('gulp-install');
+const conflict = require('gulp-conflict');
+const rename = require('gulp-rename');
+const template = require('gulp-template');
+const jeditor = require('gulp-json-editor');
+const clone = require('lodash.clone');
+const merge = require('lodash.merge');
+const slugify = require('uslug');
+const inquirer = require('inquirer');
+const iniparser = require('iniparser');
+const moment = require('moment-timezone');
 
-"use strict";
+const pkg = require('./package.json');
 
-var gulp = require("gulp");
-var path = require("path");
-var fs = require("fs");
-var async = require("async");
-var install = require("gulp-install");
-var conflict = require("gulp-conflict");
-var template = require("gulp-template");
-var jeditor = require("gulp-json-editor");
-var ignore = require("gulp-ignore");
-var clone = require("lodash.clone");
-var merge = require("lodash.merge");
-var slugify = require("uslug");
-var inquirer = require("inquirer");
-
-var pkg = require("./package.json");
-
-
-var TEMPLATE_SETTINGS = {
+const TEMPLATE_SETTINGS = {
   evaluate: /\{SLUSH\{(.+?)\}\}/g,
   interpolate: /\{SLUSH\{=(.+?)\}\}/g,
   escape: /\{SLUSH\{-(.+?)\}\}/g
 };
 
-var format = function (string) {
+const format = function (string) {
   if (string) {
-    var username = string.toLowerCase();
-    return username.replace(/\s/g, "");
+    return string.toLowerCase().replace(/\s/g, '');
   }
-  return "";
+  return '';
 };
 
-var dest = function (filepath) {
-  return path.resolve(process.cwd(), filepath || "./");
+const dest = function (filepath) {
+  return path.resolve(process.cwd(), filepath || './');
 };
 
-var defaults = (function () {
-  var homeDir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
-  var workingDirName = process.cwd().split("/").pop().split("\\").pop();
-  var workingDirNoExt = workingDirName.replace(/\.[a-z]{2,3}$/, "");
-  var osUserName = homeDir && homeDir.split("/").pop() || "root";
-  var configFile = homeDir + "/.gitconfig";
-  var user = {};
+const defaults = (function () {
+  const homeDir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
+  const workingDirName = process.cwd().split('/').pop().split('\\').pop();
+  const workingDirNoExt = workingDirName.replace(/\.[a-z]{2,3}$/, '');
+  const osUserName = homeDir && homeDir.split('/').pop() || 'root';
+  const configFile = `${homeDir}/.gitconfig`;
 
-  if (require("fs").existsSync(configFile)) {
-    user = require("iniparser").parseSync(configFile).user;
+  let user = {};
+
+  if (require('fs').existsSync(configFile)) {
+    user = iniparser.parseSync(configFile).user;
   }
 
   return {
     name: workingDirName,
     slug: slugify(workingDirNoExt),
     userName: format(user.name) || osUserName,
-    authorEmail: user.email || ""
+    authorEmail: user.email || '',
+    timezone: moment.tz.guess()
   };
 })();
 
-gulp.task("default", function (done) {
-  var prompts = [{
-    name: "platform",
-    message: "What serving platform would you like to use?",
-    type: "list",
-    choices: [{
-      name: "Static",
-      value: "static"
-    }, {
-      name: "Webhook",
-      value: "webhook"
-    }]
-  }, {
-    name: "name",
-    message: "What is the PRETTY name of your site?",
+const parseGithubRepo = function (str) {
+  const githubRe = /(?:https?:\/\/github.com)?\/?([^\/.]+\/[^\/.]+)(?:\.git)?$/i;
+  const match = str.match(githubRe);
+
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  return null;
+};
+
+gulp.task('default', done => {
+  const prompts = [{
+    name: 'name',
+    message: 'What is the PRETTY name of your site?',
     default: defaults.name
   }, {
-    name: "slug",
-    message: "What is the name SLUG for your site?",
+    name: 'slug',
+    message: 'What is the name SLUG for your site?',
     default: defaults.slug,
-    validate: function (slug) {
+    validate(slug) {
       return slug === slugify(slug);
     }
   }, {
-    name: "domain",
-    message: "What is the domain for your site?",
-    default: function (answers) {
-      if (answers.platform === "webhook") {
-        return defaults.slug + ".webhook.org";
-      }
-      return "www." + defaults.slug + ".com";
+    name: 'url',
+    message: 'What is the url for your site?',
+    default(answers) {
+      return `http://www.${answers.slug}.com`;
     }
   }, {
-    name: "description",
-    message: "Please describe your site?"
+    name: 'staging',
+    message: 'Do you want a separate staging site?',
+    type: 'confirm',
+    default() {
+      return false;
+    }
   }, {
-    name: "pkgVersion",
-    message: "What is the version of your site?",
-    default: "0.1.0"
+    name: 'stagingUrl',
+    message: 'What is the staging url?',
+    when(answers) {
+      return answers.staging;
+    },
+    default(answers) {
+      return `http://stage-www.${answers.slug}.com`;
+    }
   }, {
-    name: "github",
-    message: "GitHub repo name?"
-  }, {
-    type: "checkbox",
-    name: "jsExternals",
-    message: "Which external JS libraries would you like included?",
+    name: 'deployer',
+    message: 'How would you like to deploy your staging site?',
+    type: 'list',
+    when(answers) {
+      return answers.staging;
+    },
     choices: [{
-      name: "jQuery (2.2.0)",
-      value: "jquery"
+      name: 'Amazon AWS / S3 Bucket',
+      value: 'aws'
     }, {
-      name: "Modernizr (2.8.4)",
-      value: "modernizr"
+      name: 'None',
+      value: 'none'
     }]
   }, {
-    type: "confirm",
-    name: "singlePageApplication",
-    message: "Single Page Application? (Unknown routes are handled by index.html)",
-    when: function (answers) {
-      return answers.platform === "static";
+    name: 'author',
+    message: 'Who is authoring the site?',
+    default() {
+      let author = defaults.userName;
+      if (defaults.authorEmail) {
+        author += ` <${defaults.authorEmail}>`;
+      }
+      return author;
     }
   }, {
-    type: "confirm",
-    name: "moveon",
-    message: "Continue?"
+    name: 'description',
+    message: 'Please describe your site.'
+  }, {
+    name: 'keywords',
+    message: 'Please enter some site keywords.'
+  }, {
+    name: 'timezone',
+    message: 'What is the timezone for your site?',
+    default: defaults.timezone
+  }, {
+    name: 'version',
+    message: 'What is the version of your site?',
+    default: '0.1.0'
+  }, {
+    name: 'github',
+    message: 'GitHub repo name? (e.g. foo/bar, https://github.com/foo/bar.git)',
+    validate(str) {
+      if (str === null) {
+        return false;
+      }
+      return true;
+    },
+    filter(str) {
+      if (str) {
+        return parseGithubRepo(str);
+      }
+    }
+  }, {
+    name: 'githubToken',
+    message: 'GitHub token for the releaser?',
+    when(answers) {
+      return answers.github;
+    },
+    default: ''
+  }, {
+    name: 'framework',
+    message: 'Which framework would you like to use?',
+    type: 'list',
+    choices: [{
+      name: 'Starter Kit (BEM-based styles, Knockout scripts, Lost grid system)',
+      value: 'starter-kit'
+    }, {
+      name: 'Bootstrap (Bootstrap v4, jQuery and support scripts)',
+      value: 'bootstrap'
+    }, {
+      name: 'Blank (nothing at all, just a stub to start with, and some script polyfills)',
+      value: 'blank'
+    }]
+  }, {
+    name: 'spa',
+    message: 'Is this a single-page application?',
+    type: 'confirm',
+    default() {
+      return false;
+    }
+  }, {
+    type: 'confirm',
+    name: 'moveon',
+    message: 'Continue?'
   }];
-  //Ask
-  inquirer.prompt(prompts,
-    function (answers) {
 
-      if (!answers.moveon) {
-        return done();
-      }
+  // Ask
+  inquirer.prompt(prompts).then(answers => {
+    if (!answers.moveon) {
+      return done();
+    }
 
-      var config = clone(answers);
+    const config = clone(answers);
 
-      if (answers.github) {
-        var githubRe = /(?:https?:\/\/github.com)?\/?([^\/.]+\/[^\/.]+)(?:\.git)?$/i;
-        var match = answers.github.match(githubRe);
-        if (match && match[1]) {
-          config.github = match[1];
-        } else {
-          config.github = null;
+    config.deployer = config.deployer || 'none';
+    config.generatorVersion = pkg.version;
+    config.year = moment.tz(new Date(), answers.timezone).format('YYYY');
+
+    const binaryFileExtensions = 'png|ico|gif|jpg|jpeg|svg|psd|bmp|webp|webm';
+
+    const srcDir = path.join(__dirname, 'templates');
+    const destDir = dest();
+
+    const installTextFiles = function (cb) {
+      const src = [
+        `**/*.!(${binaryFileExtensions})`,
+        '!tasks',
+        '!tasks/**',
+        '!styles',
+        '!styles/**',
+        '!scripts',
+        '!scripts/**',
+        '!.DS_Store',
+        '!**/.DS_Store',
+        '!package.json'
+      ];
+
+      gulp.src(src, {dot: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installBinaryFiles = function (cb) {
+      const src = [
+        `**/*.+(${binaryFileExtensions})`,
+        '!tasks',
+        '!tasks/**',
+        '!styles',
+        '!styles/**',
+        '!scripts',
+        '!scripts/**',
+        '!.DS_Store',
+        '!**/.DS_Store',
+        '!package.json'
+      ];
+
+      gulp.src(src, {dot: true, cwd: srcDir, base: srcDir})
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installStyleCommonFiles = function (cb) {
+      const src = [
+        'styles/*',
+        '!.DS_Store',
+        '!**/.DS_Store'
+      ];
+
+      gulp.src(src, {dot: true, nodir: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installStyleFiles = function (cb) {
+      const src = [
+        `styles/${config.framework}/**/*`,
+        '!.DS_Store',
+        '!**/.DS_Store'
+      ];
+
+      gulp.src(src, {dot: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(rename(filepath => {
+          filepath.dirname = filepath.dirname.replace(`/${config.framework}`, '');
+          return;
+        }))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installScriptCommonFiles = function (cb) {
+      const src = [
+        'scripts/*',
+        '!.DS_Store',
+        '!**/.DS_Store'
+      ];
+
+      gulp.src(src, {dot: true, nodir: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installScriptFiles = function (cb) {
+      const src = [
+        `scripts/${config.framework}/**/*`,
+        '!.DS_Store',
+        '!**/.DS_Store'
+      ];
+
+      gulp.src(src, {dot: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(rename(filepath => {
+          filepath.dirname = filepath.dirname.replace(`/${config.framework}`, '');
+          return;
+        }))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installTaskCommonFiles = function (cb) {
+      const src = [
+        'tasks/*',
+        '!.DS_Store',
+        '!**/.DS_Store'
+      ];
+
+      gulp.src(src, {dot: true, nodir: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const installTaskDeployFiles = function (cb) {
+      const src = [
+        `tasks/deployer/${config.deployer}.js`
+      ];
+
+      gulp.src(src, {dot: true, nodir: true, cwd: srcDir, base: srcDir})
+        .pipe(rename(filepath => {
+          filepath.dirname = filepath.dirname.replace(`/deployer`, '');
+          filepath.basename = 'deployer';
+          return;
+        }))
+        .pipe(conflict(destDir, {logger: console.log}))
+        .pipe(gulp.dest(destDir))
+        .on('end', cb);
+    };
+
+    const mergePackageAndInstall = function (cb) {
+      const pkgMerge = function (pkg) {
+        if (fs.existsSync(dest('package.json'))) {
+          const existingPkg = require(dest('package.json'));
+          return merge(existingPkg, pkg);
         }
-      }
-
-      config.js = "knockout";
-      config.css = "bem";
-
-      if (config.platform === "webhook") {
-        config.buildDir = "static";
-        config.deployDir = ".whdist/.build";
-        config.staticPath = "";
-        config.browserSync = false;
-        config.minifyCss = false;
-        config.minifyJs = false;
-      } else {
-        config.buildDir = ".build";
-        config.deployDir = "public";
-        config.staticPath = "static";
-        config.browserSync = true;
-        config.minifyCss = true;
-        config.minifyJs = true;
-      }
-
-      config.version = pkg.version;
-
-      var commonPath = __dirname + "/templates/common";
-      var platformPath = __dirname + "/templates/platforms/" + config.platform;
-      var destDir = dest();
-
-      var installCommonFiles = function (cb) {
-
-        var excludePaths = [
-          "{styles,styles/**,styles/**/.*}",
-          "{scripts,scripts/**,scripts/**/.*}",
-          "{pages,pages/**,pages/**/.*}",
-          "package.json"
-        ];
-
-        gulp.src(commonPath + "/**/*", { dot: true })
-          .pipe(ignore.exclude(excludePaths))
-          .pipe(template(config, TEMPLATE_SETTINGS))
-          .pipe(conflict(destDir, { logger: console.log }))
-          .pipe(gulp.dest(destDir))
-          .on("end", cb);
+        return pkg;
       };
 
-      var installCommonPages = function (cb) {
+      gulp.src('package.json', {dot: true, cwd: srcDir, base: srcDir})
+        .pipe(template(config, TEMPLATE_SETTINGS))
+        .pipe(jeditor(pkgMerge, {
+          'indent_char': ' ',
+          'indent_size': 2
+        }))
+        .pipe(gulp.dest(destDir))
+        .pipe(install())
+        .on('end', cb);
+    };
 
-        var paths = [
-          commonPath + "/pages/" + config.css + "/**/*"
-        ];
+    const tasks = [
+      installTextFiles,
+      installBinaryFiles,
+      installStyleCommonFiles,
+      installStyleFiles,
+      installScriptCommonFiles,
+      installScriptFiles,
+      installTaskCommonFiles,
+      installTaskDeployFiles,
+      mergePackageAndInstall
+    ];
 
-        gulp.src(paths, { dot: true })
-          .pipe(template(config, TEMPLATE_SETTINGS))
-          .pipe(conflict(dest("pages"), { logger: console.log }))
-          .pipe(gulp.dest(dest("pages")))
-          .on("end", cb);
-      };
-
-      var installJsFramework = function (cb) {
-
-        var paths = [
-          commonPath + "/scripts/common/**/*",
-          commonPath + "/scripts/" + config.js + "/**/*"
-        ];
-
-        gulp.src(paths, { dot: true })
-          .pipe(conflict(dest("scripts"), { logger: console.log }))
-          .pipe(gulp.dest(dest("scripts")))
-          .on("end", cb);
-      };
-
-      var installCssFramework = function (cb) {
-
-        var paths = [
-          commonPath + "/styles/common/**/*",
-          commonPath + "/styles/" + config.css + "/**/*"
-        ];
-
-        gulp.src(paths, { dot: true })
-          .pipe(conflict(dest("styles"), { logger: console.log }))
-          .pipe(gulp.dest(dest("styles")))
-          .on("end", cb);
-      };
-
-      var installPlatformFiles = function (cb) {
-
-        var excludePaths = [
-          "package.json"
-        ];
-
-        gulp.src(platformPath + "/**/!(*.slush)", { dot: true })
-          .pipe(ignore.exclude(excludePaths))
-          .pipe(template(config, TEMPLATE_SETTINGS))
-          .pipe(conflict(destDir, { logger: console.log }))
-          .pipe(gulp.dest(destDir))
-          .on("end", cb);
-      };
-
-      var writeConfig = function (cb) {
-
-        gulp.src(commonPath + "/stencil.json")
-          .pipe(jeditor(config, {
-            "indent_char": " ",
-            "indent_size": 2
-          }))
-          .pipe(gulp.dest(dest()))
-          .on("end", cb);
-      };
-
-      var extendPackageAndInstall = function (cb) {
-
-        var pkgMerge = function (commonPkg) {
-
-          var platformPkg;
-          var existingPkg;
-
-          platformPkg = require(platformPath + "/package.json");
-          if (fs.existsSync(dest("package.json"))) {
-            existingPkg = require(dest("package.json"));
-          }
-
-          return merge(commonPkg, platformPkg, existingPkg || {});
-        };
-
-        gulp.src(commonPath + "/package.json")
-          .pipe(template(config, TEMPLATE_SETTINGS))
-          .pipe(jeditor(pkgMerge, {
-            "indent_char": " ",
-            "indent_size": 2
-          }))
-          .pipe(gulp.dest(destDir))
-          .pipe(install())
-          .on("end", cb);
-      };
-
-      async.series([
-        installCommonFiles,
-        installCommonPages,
-        installJsFramework,
-        installCssFramework,
-        installPlatformFiles,
-        writeConfig,
-        extendPackageAndInstall
-      ], done);
-    });
+    async.series(tasks, done);
+  });
 });

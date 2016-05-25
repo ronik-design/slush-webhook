@@ -1,0 +1,101 @@
+{
+  "private": true,
+  "name": "{SLUSH{=slug}}",
+  "version": "{SLUSH{=version}}",
+  "description": "{SLUSH{=description}}",
+  "generator": "slush-webhook v{SLUSH{=generatorVersion}}",
+  "author": "{SLUSH{=author}}",
+  "license": "UNLICENSED",
+  {SLUSH{ if (github) { }}
+  "homepage": "https://github.com/<%= github %>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/<%= github %>.git"
+  },
+  "bugs": {
+    "url": "https://github.com/<%= github %>/issues"
+  },
+  {SLUSH{ } }}
+  "scripts": {
+    "build": "gulp build",
+    "deploy": "gulp deploy --production --target=staging",
+    "deploy:production": "gulp deploy --production --target=production",
+    "lint": "eslint *.js tasks/*.js",
+    "start": "wh serve",
+    "test": "npm run lint && mocha --timeout 8000"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "autoprefixer": "^6.3.3",
+    "babel-core": "^6.2.1",
+    "babel-eslint": "^6.0.4",
+    "babel-loader": "^6.2.0",
+    "babel-polyfill": "^6.2.0",
+    "babel-preset-es2015-native-modules": "^6.6.0",
+    "classnames": "^2.2.5",
+    "conventional-github-releaser": "^1.1.2",
+    "del": "^2.0.1",
+    "eslint": "^2.9.0",
+    "eslint-config-ronik": "^1.0.3",
+    "eslint-loader": "^1.0.0",
+    "glob": "^7.0.3",
+    "gulp": "^3.8.11",
+    "gulp-bump": "^2.1.0",
+    "gulp-cached": "^1.1.0",
+    "gulp-changed": "^1.3.0",
+    "gulp-conventional-changelog": "^1.1.0",
+    "gulp-git": "^1.7.2",
+    "gulp-if": "^2.0.0",
+    "gulp-ignore": "^2.0.1",
+    "gulp-imagemin": "^3.0.1",
+    "gulp-notify": "^2.2.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-postcss": "^6.1.1",
+    "gulp-sass": "^2.2.0",
+    "gulp-sass-lint": "^1.1.1",
+    "gulp-size": "^2.0.0",
+    "gulp-sourcemaps": "^2.0.0-alpha",
+    "gulp-svg-sprite": "^1.2.9",
+    "gulp-util": "^3.0.3",
+    "gulp-watch": "^4.2.2",
+    "imports-loader": "^0.6.3",
+    "merge-stream": "^1.0.0",
+    "mkdirp": "^0.5.0",
+    "mocha": "^2.3.3",
+    "moment-timezone": "^0.5.4",
+    "object-fit-images": "^2.3.1",
+    "postcss-object-fit-images": "^1.1.0",
+    "postcss-reporter": "^1.3.3",
+    "postcss-scss": "^0.1.5",
+    "require-dir": "^0.3.0",
+    "run-sequence": "^1.0.2",
+    "stylelint": "^6.2.2",
+    "stylelint-config-standard": "^6.0.0",
+    "svg4everybody": "^2.0.0",
+    "through2": "^2.0.1",
+    "uslug": "^1.0.3",
+    "vanillajs-dom": "^0.2.0",
+    "vinyl-transform": "^1.0.0",
+    "webpack": "^2.1.0-beta.7",
+    "webpack-stream": "^3.1.0"
+    {SLUSH{ if (framework === 'starter-kit') { }}
+    , "bourbon": "^4.2.6"
+    , "breakpoint-sass": "^2.7.0"
+    , "knockout": "^3.3.0"
+    , "lost": "^6.7.2"
+    {SLUSH{ } }}
+    {SLUSH{ if (framework === 'bootstrap') { }}
+    , "jquery": "^2.2.3"
+    , "bootstrap": "^4.0.0-alpha.2"
+    , "tether": "^1.3.2"
+    {SLUSH{ } }}
+    {SLUSH{ if (deployer === 'aws') { }}
+    , "concurrent-transform": "^1.0.0"
+    , "gulp-awspublish": "^3.0.0"
+    , "s3-website": "^1.4.1"
+    {SLUSH{ } }}
+  },
+  "eslintConfig": {
+    "extends": "ronik"
+  }
+}

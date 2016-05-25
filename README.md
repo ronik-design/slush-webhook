@@ -1,108 +1,83 @@
-# slush-stencil ![npm release](https://img.shields.io/npm/v/slush-stencil.svg?style=flat)
+# slush-webhook ![npm release](https://img.shields.io/npm/v/slush-webhook.svg?style=flat)
 
-<img src="http://ronik-design.github.io/slush-stencil/img/stencil-logo.svg" height="128" width="128" align="right">
-
-> Bootstrapping websites of all shapes and sizes projects. Build tools, and
-  platform selection, supporting static sites with S3 deployment, Webhook CMS-
-  powered sites, and a choice of three client-side JS frameworks (Knockout,
-  Backbone, React/Flux/alt).
+This generator is the starting point for a [Webhook](https://github.com/webhook/webhook)-based
+website. It contains all the modules, boilerplate, and built-in process to get
+you started building and deploying a full website.
 
 > Created by [Ronik Design](http://www.ronikdesign.com) and used to speed up internal development.
 
+
 ## Features
 
-* Scaffold static sites and [Webhook](http://webhook.com) projects
-* Deploy easily to S3 (requires a properly configured AWS account. The easiest approach here is probably `brew install awscli` then `aws configure`)
-* Choose from one of three JS approaches, all using [ES6](http://babeljs.io) and [webpack](http://webpack.github.io)
-  * Knockout (The most basic setup, for enhancing your static site with some client-side magic)
-  * Backbone
-  * React w/ [alt](https://github.com/goatslacker/alt) & React Router
-* Choose from one of three CSS approaches, all using Stylus
-  * Basic setup, using custom utils, project structure and [BEM](http://csswizardry.com/2013/01/mindbemding-getting-your-head-round-bem-syntax/)
-  * Bootstrap, using bootstrap-stylus
-  * Skeleton.css
-* Iconfont folder and auto compilation through Gulp (creates iconfonts automatically from SVG files and generates classes)
-* Image optimization
-* Gulp-based build tools are fast!
-* Other buzzwords and cool technologies...
+* Scaffold [Webhook](http://webhook.com) projects.
+* Deploy staging sites easily to S3 (requires a properly configured AWS account. The easiest approach here is probably `brew install awscli` then `aws configure`)
+* Choose from one of three frameworks, all using [ES6](http://babeljs.io) and [webpack](http://webpack.github.io)
+  * Starter Kit — uses Knockout.js, a robust set of SCSS and PostCSS tools, and more
+  * Bootstrap — installs Bootstrap and all its dependencies, in a friendly hackable way
+  * Blank — just the process setup, and a few polyfills.
+* Automatic SVG sprite generation.
+* Image optimization.
+* Gulp-based build tools.
 
-## Getting Started
+
+## Getting started
 
 Install your global dependencies.
 
 ```sh
-$ npm install -g slush slush-stencil
+$ npm install -g slush slush-webhook
 ```
 
-> Deployment is optional, you can use Stencil as a simple static site
-generator and collection of build tools, but hook into your own publishing process
 
-### Static platform
-
-```sh
-$ mkdir [sitename]
-$ cd [sitename]
-$ slush stencil
-```
-
-To develop:
-
-```sh
-$ gulp develop
-```
-
-And when you're ready to deploy to S3 (and you have your AWS credentials configured):
-
-```sh
-$ gulp deploy [--production]
-```
-
-### Webhook platform
+## Webhook installation
 
 ```sh
 $ npm install -g wh grunt-cli
 ```
 
-If this is a totally new Webhook project, create your Webhook site, then run
-Stencil:
+If this is a totally new Webhook project, create your Webhook site, then run:
 
 ```sh
 $ wh create [sitename]
 $ cd [sitename]
-$ slush stencil
+$ slush webhook
 ```
 
-> Warning! Stencil uses conflict resolution and allows you to reject overwriting
+> Warning! Slush uses conflict resolution and allows you to reject overwriting
 files, BUT you could very easily overwrite something you care about as it spews
 a bunch of files and folders into your current directory and merges with your
 package.json. Be careful, try it out first on something you don't care about,
 commit or backup first. But also, feel free to run it again and again.
 
-To develop:
+
+## Working with your site
+
+You'll find documentation within the newly-created site's README that offers
+more detail, but the basics are as follows.
+
+Develop your site, watching files for changes and updating on the fly:
 
 ```sh
-$ gulp develop
+gulp develop
 ```
 
-When you're ready to deploy with webhook:
+This launches Gulp watchers and the Webhook local dev server. The browser 
+will reload when the html, css or js changes.
+
+Deploy your site to Webhook:
 
 ```sh
-$ gulp deploy
+gulp deploy --target=production
 ```
 
-### Collaborating with git
+Or, deploy it to a staging S3 bucket (if configured):
 
-Create your git repository in Github. Don't add any default files.
-
-```shell
-$ git init
-$ git remote add origin git@github.com:[repo-name].git
-$ git add .
-$ git commit -am "Initial commit"
-$ git branch --set-upstream-to=origin/master
-$ git pull --rebase
-$ git push origin master
+```sh
+gulp deploy --target=staging --production
 ```
+
+This will deploy the site to an S3 bucket with a name derived from your `staging_url`
+if it exists, otherwise, from your `url`. 
 
 
 ## Getting To Know Slush

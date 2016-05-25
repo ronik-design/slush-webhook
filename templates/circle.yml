@@ -1,0 +1,27 @@
+machine:
+  timezone:
+    America/New_York
+  node:
+    version: 6.2.0
+  environment:
+    NODE_ENV: production
+
+dependencies:
+  cache_directories:
+    - ~/nvm/versions/node/v6.2.0/lib/node_modules
+    - ~/nvm/versions/node/v6.2.0/bin
+  pre:
+    - if [ ! -e ~/nvm/versions/node/v6.2.0/bin/grunt ]; then npm install -g grunt-cli; else echo "Grunt CLI seems to be cached"; fi;
+    - if [ ! -e ~/nvm/versions/node/v6.2.0/bin/wh ]; then npm install -g wh; else echo "Webhook seems to be cached"; fi;
+  override:
+    - npm install --only=development && npm install --only=production
+
+deployment:
+  production:
+    tag: /v.*/
+    commands:
+      - npm run deploy:production
+  staging:
+    branch: master
+    commands:
+      - npm run deploy

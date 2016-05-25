@@ -1,0 +1,44 @@
+# Where things are
+source:             .
+build:              static
+destination:        .whdist/.build
+
+# Relative to source
+scripts_dir:        scripts
+styles_dir:         styles
+sprites_dir:        sprites
+images_dir:         images
+
+# Serving
+url:                {SLUSH{=url}}
+{SLUSH{ if (staging) { }}
+staging_url:        {SLUSH{=stagingUrl}}
+{SLUSH{ } }}
+error:              404.html
+{SLUSH{ if (spa) { }}
+spa:                true # If true, all 404s will be redirect to the index
+{SLUSH{ } }}
+
+{SLUSH{ if (github) { }}
+# Releaser
+github_token:       {SLUSH{=githubToken}}
+{SLUSH{ } }}
+
+# Output paths
+styles_path:        css
+scripts_path:       javascript
+images_path:        images
+sprites_path:       sprites
+
+# Build tools
+styles:
+  sass:
+    includePaths:
+      - node_modules/breakpoint-sass/stylesheets
+      - node_modules/bourbon/app/assets/stylesheets
+  postcss:
+    plugins:
+      lost: true
+      postcss-object-fit-images: true
+      autoprefixer:
+        browsers: ['last 2 versions']

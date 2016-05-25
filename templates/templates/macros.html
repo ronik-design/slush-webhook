@@ -1,0 +1,97 @@
+{# img using srcset #}
+{% macro img(image, alt, options) %}
+
+{% set options = options || {} %}
+
+{% set src = options.src %}
+{% set width = options.width || image.width %}
+{% set ratio = options.ratio %}
+{% set classes = options.classes %}
+{% set sizes = options.sizes %}
+
+{% if width %}
+
+  {% set oW = width %}
+  {% set o = image|imageSize(oW, 'auto') %}
+
+  {% if ratio %}
+    {% set oH = Math.floor(oW * ratio) %}
+    {% set o = image|imageCrop(oW, oH) %}
+  {% endif %}
+
+  {% set sW = Math.floor(oW * 0.5) %}
+  {% set s = image|imageSize(sW, 'auto') %}
+
+  {% if ratio %}
+    {% set sH = Math.floor(sW * ratio) %}
+    {% set s = image|imageCrop(sW, sH) %}
+  {% endif %}
+
+  {% set mW = Math.floor(oW * 0.75) %}
+  {% set m = image|imageSize(mW, 'auto') %}
+
+  {% if ratio %}
+    {% set mH = Math.floor(mW * ratio) %}
+    {% set m = image|imageCrop(mW, mH) %}
+  {% endif %}
+
+  {% set srcset = s + ' ' + sW + 'w, ' + m + ' ' + mW + 'w, ' + o + ' ' + oW + 'w' %}
+
+{% elseif !src %}
+
+  {% set src = image.url %}
+
+{% endif %}
+
+<img src="{{ src | default(m) }}"
+     {% if srcset %}srcset="{{ srcset }}"{% endif %}
+     {% if srcset %}sizes="{{ sizes|default("100vw") }}"{% endif %}
+     {% if classes %}class="{{ classes }}"{% endif %}
+     alt="{{ alt }}" />
+
+{% endmacro %}
+
+{# Video tag #}
+{% macro video(src, classes) %}
+<video class="{{ classes }}" src="{{ src }}"></video>
+{% endmacro %}
+
+{# SVG sprite helper #}
+{% macro sprite(name, set, classes) %}
+<svg class="{{ classes }}"><use xlink:href="/static/sprites/{{ set | default('main') }}.stack.svg#{{ name }}"></use></svg>
+{% endmacro %}
+
+{# Title helper #}
+{% macro title(primary, fallback, size, separator) %}{% spaceless %}
+  {% set site_name = getSetting('site_name') %}
+  {% set text = primary | default(fallback) | striptags | replace('\n', '') %}
+  {% set size = size | default(100) %}
+  {% if text %}
+    {% if size %}
+      {% set text = text | truncate(size) %}
+    {% endif %}
+    {{ text }}{{ separator | default(' - ') }}{{ site_name }}
+  {% else %}
+    {{ site_name }}
+  {% endif %}
+{% endspaceless %}{% endmacro %}
+
+{# Description helper #}
+{% macro description(primary, fallback, size) %}{% spaceless %}
+  {% set text = primary | default(fallback) | striptags | replace("\n", " ") | replace("\s\s", " ") %}
+  {% set size = size | default(140) %}
+  {% if text %}
+    {% if size %}
+      {% set text = text | truncate(size) %}
+    {% endif %}
+    {% autoescape false %}{{ text }}{% endautoescape %}
+  {% endif %}
+{% endspaceless %}{% endmacro %}
+
+{# Absolute urls #}
+{% macro absolute_url(path) %}{% if !path %}{% set path = getCurrentUrl() %}{% if !path | startsWith('https?://') %}{{ getSetting('site_url') }}{% if !path | startsWith('/') %}/{% endif %}{% endif %}{{ path }}{% endmacro %}
+
+{# Link helper #}
+{% macro link(url, text, classes) %}{% spaceless %}
+  <a class="{{ classes }}" href="{{ url }}">{{ text }}</a>
+{% endspaceless %}{% endmacro %}

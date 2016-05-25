@@ -1,68 +1,49 @@
 {
-  "name": "slush-stencil",
-  "description": "Webhook or static S3-powered sites with JS framework selection, powerful Gulp tasks and more...",
-  "version": "0.26.2",
-  "homepage": "https://github.com/ronik-design/slush-stencil",
-  "author": {
-    "name": "Michael Shick",
-    "email": "michael@ronikdesign.com"
+  "name": "slush-webhook",
+  "version": "0.1.0",
+  "description": "Generator for Webhook projects.",
+  "license": "ISC",
+  "engines": {
+    "node": ">= 5.0.0"
+  },
+  "scripts": {
+    "test": "eslint"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/ronik-design/slush-stencil.git"
+    "url": "git+https://github.com/ronik-design/slush-webhook.git"
   },
-  "bugs": {
-    "url": "https://github.com/ronik-design/slush-stencil/issues"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/ronik-design/slush-stencil/blob/master/LICENSE"
-    }
+  "keywords": [
+    "slush",
+    "generator"
   ],
-  "main": "slushfile.js",
-  "engines": {
-    "node": ">= 5.0.0",
-    "npm": ">= 2.0.0"
+  "author": "Michael Shick <m@shick.us>",
+  "bugs": {
+    "url": "https://github.com/ronik-design/slush-webhook/issues"
   },
-  "scripts": {
-    "test": "echo \"No tests\""
+  "homepage": "https://github.com/ronik-design/slush-webhook#readme",
+  "devDependencies": {
+    "babel-eslint": "^6.0.4",
+    "eslint": "^2.9.0",
+    "eslint-config-ronik": "^1.0.3"
   },
   "dependencies": {
-    "async": "^1.5.0",
-    "gulp": "^3.9.0",
+    "async": "^2.0.0-rc.4",
+    "gulp": "^3.9.1",
     "gulp-conflict": "^0.4.0",
-    "gulp-if": "^2.0.0",
     "gulp-ignore": "^2.0.1",
     "gulp-install": "^0.6.0",
     "gulp-json-editor": "^2.2.1",
     "gulp-rename": "^1.2.2",
-    "gulp-template": "^3.1.0",
-    "gulp-util": "^3.0.7",
+    "gulp-template": "^4.0.0",
     "iniparser": "^1.0.5",
-    "inquirer": "^0.11.0",
-    "lodash.clone": "^3.0.3",
-    "lodash.merge": "^3.3.2",
-    "slush": ">=1.0.0",
-    "uslug": "^1.0.3"
+    "inquirer": "^1.0.2",
+    "lodash.clone": "^4.3.2",
+    "lodash.merge": "^4.3.5",
+    "moment-timezone": "^0.5.4",
+    "uslug": "^1.0.4"
   },
-  "keywords": [
-    "slushgenerator",
-    "webhook",
-    "static",
-    "s3",
-    "react",
-    "flux",
-    "alt",
-    "stylus",
-    "jquery",
-    "generator",
-    "scaffold",
-    "stencil"
-  ],
-  "devDependencies": {
-    "eslint": "^1.10.1",
-    "eslint-config-defaults": "^7.1.1",
-    "eslint-plugin-filenames": "^0.2.0"
+  "eslintConfig": {
+    "extends": "ronik"
   }
 }

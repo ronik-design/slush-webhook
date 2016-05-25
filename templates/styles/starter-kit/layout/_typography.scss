@@ -1,0 +1,158 @@
+div,
+p,
+span,
+li,
+small,
+label,
+input,
+select,
+button,
+a,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @include font-smoothing(on);
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings */
+
+@mixin heading($options: ()) {
+
+  $config:
+    map-merge(
+      (
+        color: $headings-color,
+        weight: $headings-font-weight,
+        line-height: $headings-line-height
+      ),
+      $options
+    );
+
+  color: map-get($config, color);
+  font-family: $headings-font-family;
+  font-weight: map-get($config, weight);
+  line-height: map-get($config, line-height);
+
+  h1,
+  .h1 {
+    font-size: $font-size-h1;
+  }
+
+  h2,
+  .h2 {
+    font-size: $font-size-h2;
+  }
+
+  h3,
+  .h3 {
+    font-size: $font-size-h3;
+  }
+
+  h4,
+  .h4 {
+    font-size: $font-size-h4;
+  }
+
+  h5,
+  .h5 {
+    font-size: $font-size-h5;
+  }
+
+  h6,
+  .h6 {
+    font-size: $font-size-h6;
+  }
+}
+
+/* Copy */
+
+@mixin copy($options: ()) {
+  $config:
+    map-merge(
+      (
+        color: -color(gray-xdark),
+        link_color: -color(science-blue),
+        link_weight: -weight(bold),
+        weight: -weight(normal),
+        line-height: $line-height,
+        font-size: $font-size,
+        font-family: $font-family-serif
+      ),
+      $options
+  );
+
+  $font-family: map-get($config, font-family);
+
+  color: map-get($config, color);
+  font-family: $font-family;
+  font-weight: map-get($config, weight);
+  font-size: map-get($config, font-size);
+  line-height: map-get($config, line-height);
+
+  p,
+  ul,
+  ol,
+  figure,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0 0 ($line-height-computed / 2);
+  }
+
+  strong {
+    font-weight: -weight(bold);
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  a {
+    @extend %strip-link-style;
+    color: map-get($config, link_color);
+    font-weight: map-get($config, link_weight);
+  }
+
+  a:hover {
+    @extend %strip-link-style;
+    color: map-get($config, link_color);
+    font-weight: map-get($config, link_weight);
+    text-decoration: underline;
+  }
+
+  ul,
+  ol {
+    li {
+      line-height: 1.56;
+      padding-left: 4.2rem;
+      text-indent: -0.7rem;
+    }
+    li:before {
+      color: black;
+      margin-right: 1.1rem;
+    }
+  }
+
+  ul {
+    li:before {
+      content: "• ";
+    }
+  }
+
+  ol {
+    counter-reset: section;
+    li:before {
+      counter-increment: section;
+      content: counters(section, ".") "  ";
+      color: black;
+    }
+  }
+
+}
