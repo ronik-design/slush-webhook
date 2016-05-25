@@ -24,7 +24,7 @@ spa:                true # If true, all 404s will be redirect to the index
 github_token:       {SLUSH{=githubToken}}
 {SLUSH{ } }}
 
-# Output paths
+# Output paths (relative to build location)
 styles_path:        css
 scripts_path:       javascript
 images_path:        images
@@ -38,7 +38,11 @@ styles:
       - node_modules/bourbon/app/assets/stylesheets
   postcss:
     plugins:
-      lost: true
-      postcss-object-fit-images: true
-      autoprefixer:
-        browsers: ['last 2 versions']
+      -
+        name: lost
+      -
+        name: postcss-object-fit-images
+      -
+        name: autoprefixer
+        options:
+          browsers: ['last 2 versions']

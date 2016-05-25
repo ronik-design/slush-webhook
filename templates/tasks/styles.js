@@ -21,24 +21,24 @@ const errorHandler = notify.onError();
 const loadPostcssPlugins = function (options) {
   const plugins = [];
 
-  for (const name in options.plugins) {
-    let plugin;
+  for (const plugin of options.plugins) {
+    let loaded;
 
     try {
-      plugin = require(name);
+      loaded = require(plugin.name);
     } catch (e) {
-      gutil.log(gutil.colors.red(`PostCSS plugin '${name}' not found. Maybe you to 'npm install' it?`));
+      gutil.log(gutil.colors.red(`PostCSS plugin '${plugin.name}' not found. Maybe you to 'npm install' it?`));
     }
 
     if (!plugin) {
       continue;
     }
 
-    if (typeof options.plugins[name] === 'object') {
-      plugin = plugin(options.plugins[name]);
+    if (plugin.options) {
+      loaded = loaded(plugin.options);
     }
 
-    plugins.push(plugin);
+    plugins.push(loaded);
   }
 
   return plugins;
