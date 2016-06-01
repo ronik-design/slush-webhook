@@ -20,8 +20,8 @@ deployment:
   production:
     tag: /v.*/
     commands:
-      - npm run deploy:production
+      - gulp deploy --target=production
   staging:
     branch: master
     commands:
-      - npm run deploy
+      - gulp deploy --target=staging
