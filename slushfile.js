@@ -3,6 +3,7 @@
 const gulp = require('gulp');
 const path = require('path');
 const fs = require('fs');
+const url = require('url');
 const async = require('async');
 const install = require('gulp-install');
 const conflict = require('gulp-conflict');
@@ -87,36 +88,6 @@ gulp.task('default', done => {
       return `http://www.${answers.slug}.com`;
     }
   }, {
-    name: 'staging',
-    message: 'Do you want a separate staging site?',
-    type: 'confirm',
-    default() {
-      return false;
-    }
-  }, {
-    name: 'stagingUrl',
-    message: 'What is the staging url?',
-    when(answers) {
-      return answers.staging;
-    },
-    default(answers) {
-      return `http://stage-www.${answers.slug}.com`;
-    }
-  }, {
-    name: 'deployer',
-    message: 'How would you like to deploy your staging site?',
-    type: 'list',
-    when(answers) {
-      return answers.staging;
-    },
-    choices: [{
-      name: 'Amazon AWS / S3 Bucket',
-      value: 'aws'
-    }, {
-      name: 'None',
-      value: 'none'
-    }]
-  }, {
     name: 'author',
     message: 'Who is authoring the site?',
     default() {
@@ -181,6 +152,36 @@ gulp.task('default', done => {
     type: 'confirm',
     default() {
       return false;
+    }
+  }, {
+    name: 'staging',
+    message: 'Do you want a separate staging site?',
+    type: 'confirm',
+    default() {
+      return false;
+    }
+  }, {
+    name: 'deployer',
+    message: 'How would you like to deploy your staging site?',
+    type: 'list',
+    when(answers) {
+      return answers.staging;
+    },
+    choices: [{
+      name: 'Amazon AWS / S3 Bucket',
+      value: 'aws'
+    }, {
+      name: 'None',
+      value: 'none'
+    }]
+  }, {
+    name: 'awsBucket',
+    message: 'What bucket name would you like to use? (otherwise it will be derived from the url)',
+    when(answers) {
+      return answers.deployer === 'aws';
+    },
+    default(answers) {
+      return url.parse(answers.url).hostname;
     }
   }, {
     type: 'confirm',

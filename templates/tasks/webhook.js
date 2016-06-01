@@ -72,12 +72,15 @@ gulp.task('webhook:deploy', cb => {
     stdio: 'inherit'
   };
 
-  gutil.env.deployResult = {service: 'Webhook'};
-
   spawn('wh', args, opts)
     .on('error', notify.onError())
     .on('exit', () => {
-      gutil.env.deployResult.host = config.url;
+      gutil.log('');
+      gutil.log(`Your site has been deployed to Webhook`);
+      gutil.log('--------------------------------------');
+      gutil.log(gutil.colors.green(config.url));
+      gutil.log('');
+
       onExit(cb);
     });
 });

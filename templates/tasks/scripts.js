@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
 const gulp = require('gulp');
 const gutil = require('gulp-util');
 const webpack = require('webpack');
@@ -16,12 +17,20 @@ const getConfig = function (scriptsDir, production) {
   return require(`${scriptsDir}/webpack.development.config.js`);
 };
 
+const getEslintConfigFile = function (dir) {
+  try {
+    const filepath = path.join(dir, '.eslintrc');
+    fs.accessSync(filepath, fs.F_OK);
+    return filepath;
+  } catch (e) {
+    return false;
+  }
+};
+
 gulp.task('scripts', () => {
   const production = gutil.env.production;
   const watching = gutil.env.watching;
   const config = gutil.env.config;
-
-  notify.logLevel(0);
 
   const errorHandler = notify.onError();
 
@@ -33,8 +42,13 @@ gulp.task('scripts', () => {
 
   const webpackConfig = getConfig(scriptsDir, production);
 
-  webpackConfig.eslint = {configFile: path.join(scriptsDir, '.eslintrc')};
   webpackConfig.output = {filename};
+
+  const configFile = getEslintConfigFile(scriptsDir);
+
+  if (configFile) {
+    webpackConfig.eslint = {configFile};
+  }
 
   return gulp.src(src)
     .pipe(gulpIf(watching, plumber({errorHandler})))

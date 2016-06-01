@@ -11,13 +11,8 @@ images_dir:         images
 
 # Serving
 url:                {SLUSH{=url}}
-{SLUSH{ if (staging) { }}
-staging_url:        {SLUSH{=stagingUrl}}
-{SLUSH{ } }}
 error:              404.html
-{SLUSH{ if (spa) { }}
-spa:                true # If true, all 404s will be redirect to the index
-{SLUSH{ } }}
+single_page:        {SLUSH{ if (spa) { print(true) } else { print(false) } }} # If true, all 404s will be redirect to the index
 
 {SLUSH{ if (github) { }}
 # Releaser
@@ -30,19 +25,32 @@ scripts_path:       javascript
 images_path:        images
 sprites_path:       sprites
 
+{SLUSH{ if (deployer === 'aws') { }}
+# Deployer
+deployer:
+  type:             aws
+  bucket:           {SLUSH{ if (awsBucket) { print(awsBucket) } }}
+{SLUSH{ } }}
+
 # Build tools
 styles:
+  autoprefixer:     last 2 versions
+{SLUSH{ if (framework === 'bootstrap') { }}
   sass:
-    includePaths:
-      - node_modules/breakpoint-sass/stylesheets
-      - node_modules/bourbon/app/assets/stylesheets
+    importMappings:
+      -
+        search:     ^bootstrap/(.+)
+        replace:    node_modules/bootstrap/scss/$1
+{SLUSH{ } else if (framework === 'starter-kit') { }}
+  sass:
+    importMappings:
+      -
+        search:     ^breakpoint$
+        replace:    node_modules/breakpoint-sass/stylesheets/_breakpoint.scss
+      -
+        search:     ^bourbon$
+        replace:    node_modules/bourbon/app/assets/stylesheets/_bourbon.scss
   postcss:
     plugins:
-      -
-        name: lost
-      -
-        name: postcss-object-fit-images
-      -
-        name: autoprefixer
-        options:
-          browsers: ['last 2 versions']
+      - name:       lost
+{SLUSH{ } }}

@@ -4,7 +4,7 @@ const gulp = require('gulp');
 const runSequence = require('run-sequence');
 
 // Build
-gulp.task('compile', cb => {
+gulp.task('generate', cb => {
   runSequence(
     'clean',
     'sprites',

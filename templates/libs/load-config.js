@@ -3,12 +3,12 @@
 const path = require('path');
 const fs = require('fs');
 const yaml = require('js-yaml');
-const clone = require('lodash.clonedeep');
+const clonedeep = require('lodash.clonedeep');
 
 const loadConfig = function (configPath) {
   const filepath = path.resolve(configPath);
   const rawConfig = yaml.safeLoad(fs.readFileSync(filepath, 'utf8'));
-  const config = clone(rawConfig);
+  const config = clonedeep(rawConfig);
 
   config.base = config.base || path.resolve('.');
   config.source = path.resolve(config.base, config.source);
